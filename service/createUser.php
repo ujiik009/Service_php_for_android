@@ -1,6 +1,6 @@
 <?php
 include "../lib/phpqrcode/qrlib.php";
-	
+	$box = array();
 	$json = array();
 	$tempDir = "../tempQRcode/"; 
 	$tempQRSERVER = "http://192.168.1.37/Service_php_for_android/tempQRcode/";
@@ -21,11 +21,13 @@ include "../lib/phpqrcode/qrlib.php";
         $json["status"] = true;
         $json["pathQR"] = $tempQRSERVER.$fileName;
         //echo $json["pathQR"] ;
-        echo json_encode($json);
+        array_push($box, $json);
+        echo json_encode($box);
     } else { 
         $json["status"] = false;
         $json["pathQR"] = "";
-        echo json_encode($json);
+        array_push($box, $json);
+        echo json_encode($box);
     } 
      
    
