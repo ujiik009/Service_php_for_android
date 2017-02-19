@@ -1,9 +1,13 @@
 <?php
 include "../lib/phpqrcode/qrlib.php";
+	
+if(count($_REQUEST)>0){
+
 	$box = array();
 	$json = array();
 	$tempDir = "../tempQRcode/"; 
-	$tempQRSERVER = "http://192.168.1.37/Service_php_for_android/tempQRcode/";
+	$tempQrRequest = $_REQUEST["Domain"];
+	$tempQRSERVER = $tempQrRequest."tempQRcode/";
 
 	$codeContents = $_REQUEST["studentCode"]; 
 	//$codeContents = 555; 
@@ -17,7 +21,7 @@ include "../lib/phpqrcode/qrlib.php";
      
     // generating 
     if (!file_exists($pngAbsoluteFilePath)) { 
-        QRcode::png($codeContents, $pngAbsoluteFilePath); 
+         QRcode::png($codeContents, $pngAbsoluteFilePath); 
         $json["status"] = true;
         $json["pathQR"] = $tempQRSERVER.$fileName;
         //echo $json["pathQR"] ;
@@ -29,6 +33,11 @@ include "../lib/phpqrcode/qrlib.php";
         array_push($box, $json);
         echo json_encode($box);
     } 
+}else{
+	// no value
+
+}
+	
      
    
 ?>
