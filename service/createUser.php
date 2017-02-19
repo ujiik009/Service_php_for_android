@@ -42,7 +42,7 @@ if(count($_REQUEST)>0){
                  QRcode::png($codeContents, $pngAbsoluteFilePath); 
                 $json["status"] = true;
                 $json["pathQR"] = $tempQRSERVER.$fileName;
-                $json["massage"] = "OK";
+                $json["massage"] = "Create User success full";
             }
             //echo $json["pathQR"] ;
             
