@@ -1,73 +1,119 @@
 <?php
 include "../lib/phpqrcode/qrlib.php";
 include '../config/config.php';
-
-// "studentCode=" 
-//  "username=" 
-//  "password=" 
-//  "BookCode=" 
-//  "Domain=" 
-
-
-    
-if(count($_REQUEST)>0){
+// "studentCode="
+//  "username="
+//  "password="
+//  "BookCode="
+//  "Domain="
 
     $box = array();
     $json = array();
-    $tempDir = "../tempQRcode/"; 
-    $tempQrRequest = $_REQUEST["Domain"];
-    $tempQRSERVER = $tempQrRequest."tempQRcode/";
-    $codeContents = $_REQUEST["studentCode"]; 
-    //$codeContents = 555; 
-     
-    // we need to generate filename somehow,  
-    // with md5 or with database ID used to obtains $codeContents... 
-    $fileName = "{$_REQUEST["studentCode"]}".md5($_REQUEST["username"]).'.png'; 
-     
-    $pngAbsoluteFilePath = $tempDir.$fileName; 
-    $urlRelativeFilePath = $tempDir.$fileName; 
-     
-    // generating 
-    if (!file_exists($pngAbsoluteFilePath)) { 
-        
-       
-        $sql_check_username = "SELECT * FROM `stadent_info` WHERE `username` = '".$_REQUEST["username"]."' OR `student_code` = '".$_REQUEST["studentCode"]."' ;";
-        
-        if ($res = mysqli_query($obj_con, $sql_check_username)) {
-            if(mysqli_num_rows($res)>0){
-                $json["status"] = false;
-                $json["pathQR"] = "";
-                $json["massage"] = "Users are already";
-            }else{
-                 QRcode::png($codeContents, $pngAbsoluteFilePath); 
-                $json["status"] = true;
-                $json["pathQR"] = $tempQRSERVER.$fileName;
-                $json["massage"] = "Create User success full";
-            }
-            //echo $json["pathQR"] ;
-            
-        }else{
-                $json["status"] = false;
-                $json["pathQR"] = "";
-                $json["massage"] = $sql_check_username." ===>".mysqli_error($obj_con);
+
+function check_student_code($obj_con,$student_code){
+    $sql_check_username = "SELECT * FROM `student_list` WHERE `student_code` = '{$student_code}'";
+
+    if($res = mysqli_query($obj_con, $sql_check_username)){
+        if(mysqli_num_rows($res) == 1 ){
+
+            return true;
+        }else {
+
+            return false;
         }
-
-        array_push($box, $json);
-        echo json_encode($box);
-
-    } else { 
-        $json["status"] = false;
-        $json["pathQR"] = "";
-        $json["massage"] = "user error";
-        array_push($box, $json);
-        echo json_encode($box);
-    } 
-}else{
-    // no value
-
+    }else{
+        return false;
+    }
 
 }
-    
-     
-   
+
+function register($obj_con,$studentCode,$username,$password,$BookCode,$address_QR){
+
+	$sql_insert_user = " INSERT INTO `student_account`(`std_user`, `std_pass`, `student_code`, `book_code`, `address_QR`)
+	VALUES ('{$username}','{$password}','{$studentCode}','{$BookCode}','{$address_QR}')";
+      if(mysqli_query($obj_con,$sql_insert_user)){
+        return true;
+      }else{
+        return false;
+      }
+}
+
+
+if(count($_REQUEST)>0){
+
+    if(check_student_code($obj_con,$_REQUEST["studentCode"]) === true){
+
+
+            $tempDir = "../tempQRcode/";
+            $tempQrRequest = $_REQUEST["Domain"];
+            $tempQRSERVER = $tempQrRequest."tempQRcode/";
+            $codeContents = $_REQUEST["studentCode"];
+
+
+            // we need to generate filename somehow,
+            // with md5 or with database ID used to obtains $codeContents...
+            $fileName = "{$_REQUEST["studentCode"]}".md5($_REQUEST["username"]).'.png';
+
+            $pngAbsoluteFilePath = $tempDir.$fileName;
+            $urlRelativeFilePath = $tempDir.$fileName;
+
+            // generating
+            if (!file_exists($pngAbsoluteFilePath)) {
+
+
+                $sql_check_username = "SELECT * FROM `student_account` WHERE `std_pass` = '".$_REQUEST["username"]."' OR `student_code` = '".$_REQUEST["studentCode"]."' ;";
+
+                if ($res = mysqli_query($obj_con, $sql_check_username)) {
+                    if(mysqli_num_rows($res)>0){
+                        $json["status"] = false;
+                        $json["pathQR"] = "";
+                        $json["massage"] = "The user then can not create user.";
+                    }else{
+                        QRcode::png($codeContents, $pngAbsoluteFilePath);
+                        if (register($obj_con,$_REQUEST['studentCode'],$_REQUEST['username'],$_REQUEST['password'],$_REQUEST['BookCode'],$tempQRSERVER.$fileName)===true) {
+                          $json["status"] = true;
+                          $json["pathQR"] = $tempQRSERVER.$fileName;
+                          $json["massage"] = "Create User success full";
+                        }else {
+                          $json["status"] = false;
+                          $json["pathQR"] = $tempQRSERVER.$fileName;
+                          $json["massage"] = "การสร้าง User ขัดข้อง";
+                        }
+                    }
+
+                }else{
+                        $json["status"] = false;
+                        $json["pathQR"] = "";
+                        $json["massage"] = $sql_check_username." ===>".mysqli_error($obj_con);
+                }
+
+                array_push($box, $json);
+                echo json_encode($box);
+
+            } else {
+                $json["status"] = false;
+                $json["pathQR"] = "";
+                $json["massage"] = "user error";
+                array_push($box, $json);
+                echo json_encode($box);
+            }
+
+
+    }else{
+        $json["status"] = false;
+        $json["pathQR"] = "";
+        $json["massage"] = "คุณไม่ใช้นักศึกษาที่มีสิทธิ์ใช้งาน";
+        array_push($box, $json);
+        echo json_encode($box);
+    }
+
+
+
+
+}else{
+    // no value
+}
+
+
+
 ?>
