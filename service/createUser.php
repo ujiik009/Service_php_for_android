@@ -11,7 +11,7 @@ include '../config/config.php';
 
     $box = array();
     $json = array();
-
+// create function check_student_code()
 function check_student_code($obj_con,$student_code){
     $sql_check_username = "SELECT * FROM `student_list` WHERE `student_code` = '{$student_code}'";
 
@@ -27,8 +27,9 @@ function check_student_code($obj_con,$student_code){
         return false;
     }
 
-}
+}//end function check_student_code()
 
+// create function register
 function register($obj_con,$studentCode,$username,$password,$BookCode,$address_QR){
 
 	$sql_insert_user = " INSERT INTO `student_account`(`std_user`, `std_pass`, `student_code`, `book_code`, `address_QR`)
@@ -38,48 +39,48 @@ function register($obj_con,$studentCode,$username,$password,$BookCode,$address_Q
       }else{
         return false;
       }
-}
+}// end function register
 
 
-if(count($_REQUEST)>0){
+if(count($_REQUEST)>0){// check send request
 
-    if(check_student_code($obj_con,$_REQUEST["studentCode"]) === true){
+    if(check_student_code($obj_con,$_REQUEST["studentCode"]) === true){ //call function for check student
 
 
             $tempDir = "../tempQRcode/";
             $tempQrRequest = $_REQUEST["Domain"];
             $tempQRSERVER = $tempQrRequest."tempQRcode/";
-            $codeContents = $_REQUEST["studentCode"];
-
-
+            $str_json = array('studentCode' => $_REQUEST["studentCode"],'BookCode' => $_REQUEST["BookCode"] );
+            $codeContents = json_encode($str_json);
             // we need to generate filename somehow,
             // with md5 or with database ID used to obtains $codeContents...
-            $fileName = "{$_REQUEST["studentCode"]}".md5($_REQUEST["username"]).'.png';
+            $fileName = "{$_REQUEST["studentCode"]}".md5($_REQUEST["studentCode"]).'.png';
 
             $pngAbsoluteFilePath = $tempDir.$fileName;
             $urlRelativeFilePath = $tempDir.$fileName;
 
             // generating
-            if (!file_exists($pngAbsoluteFilePath)) {
+            if (!file_exists($pngAbsoluteFilePath)) {// check file image
 
-
+                // sql command check user
                 $sql_check_username = "SELECT * FROM `student_account` WHERE `std_pass` = '".$_REQUEST["username"]."' OR `student_code` = '".$_REQUEST["studentCode"]."' ;";
-
+                // check execute command $sql_check_username
                 if ($res = mysqli_query($obj_con, $sql_check_username)) {
-                    if(mysqli_num_rows($res)>0){
+                    if(mysqli_num_rows($res)>0){ //check user in table student_account
                         $json["status"] = false;
                         $json["pathQR"] = "";
                         $json["massage"] = "The user then can not create user.";
                     }else{
-                        QRcode::png($codeContents, $pngAbsoluteFilePath);
+                        QRcode::png($codeContents, $pngAbsoluteFilePath,QR_ECLEVEL_L, 4); // gen img QR
+                        // check status function register()
                         if (register($obj_con,$_REQUEST['studentCode'],$_REQUEST['username'],$_REQUEST['password'],$_REQUEST['BookCode'],$tempQRSERVER.$fileName)===true) {
                           $json["status"] = true;
                           $json["pathQR"] = $tempQRSERVER.$fileName;
-                          $json["massage"] = "Create User success full";
+                          $json["massage"] = "การลงทะเบียนเสร็จสิ้น";
                         }else {
                           $json["status"] = false;
                           $json["pathQR"] = $tempQRSERVER.$fileName;
-                          $json["massage"] = "การสร้าง User ขัดข้อง";
+                          $json["massage"] = "การลงทะเบียนเกิดปัญหา กรุณาลองใหม่ในภายหลัง";
                         }
                     }
 
@@ -95,11 +96,10 @@ if(count($_REQUEST)>0){
             } else {
                 $json["status"] = false;
                 $json["pathQR"] = "";
-                $json["massage"] = "user error";
+                $json["massage"] = "รหัสนักศึกษานี้ได้ทำการลงทะเบียนแล้ว";
                 array_push($box, $json);
                 echo json_encode($box);
             }
-
 
     }else{
         $json["status"] = false;
