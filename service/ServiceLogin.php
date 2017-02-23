@@ -4,7 +4,7 @@ include "../lib/phpqrcode/qrlib.php";
 include '../config/config.php';
 
   function search_TA_by_sec_id($obj_con,$sec_id){
-     $sql_search_ta = "SELECT `nickname` as `name`,`ta_tel`,`img_address` FROM `ta_account` WHERE `ta_sec` = '{$sec_id}'";
+    $sql_search_ta = "SELECT `nickname` as `name`,`ta_tel`,`img_address` FROM `ta_account` WHERE `ta_sec` = '{$sec_id}'";
     $datas_ta = array();
     if (  !!$res = mysqli_query($obj_con,$sql_search_ta)) {
       while ($data_ta = mysqli_fetch_assoc($res)) {
@@ -45,11 +45,13 @@ include '../config/config.php';
       }else {
           $return["status"] = false;
           $return["data_user"] = array();
+          $return['data_ta'] = array();
           $return["message"] = "ไม่พบผู้ใช้อยู่ในระบบ โปรดลองใหม่";
       }
     } else {
           $return["status"] = false;
           $return["data_user"] = array();
+          $return['data_ta'] = array();
           $return["message"] = "ไม่สามารถ เชื่อมต่อฐานข้อมูลได้่";
     }
 
